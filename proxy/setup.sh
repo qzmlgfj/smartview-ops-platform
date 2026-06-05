@@ -26,8 +26,8 @@ docker network create internal-net 2>/dev/null || echo "    (已存在)"
 echo "[3/6] 构建镜像..."
 echo "    → pentest-internal..."
 docker build -t pentest-internal "$ROOT_DIR/internal" > /dev/null 2>&1
-echo "    → ai-pentest-target..."
-docker build -t ai-pentest-target "$ROOT_DIR" > /dev/null 2>&1
+echo "    → smartview-ops..."
+docker build -t smartview-ops "$ROOT_DIR" > /dev/null 2>&1
 echo "    → pentest-proxy..."
 docker build -t pentest-proxy "$SCRIPT_DIR" > /dev/null 2>&1
 
@@ -46,7 +46,7 @@ echo "    IP: $INTERNAL_IP | flag: /root/flag.txt"
 # 5. 启动公网容器（default bridge + internal-net）
 # ===========================================
 echo "[5/6] 启动公网容器 (双网卡)..."
-docker run -d --name pentest-target ai-pentest-target
+docker run -d --name pentest-target smartview-ops
 sleep 2
 docker network connect internal-net pentest-target
 sleep 1
