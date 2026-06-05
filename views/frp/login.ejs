@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FRP 内网穿透管理 · 登录</title>
+  <style>
+    :root {
+      --bg-primary: #0a0e14;
+      --bg-secondary: #141b22;
+      --bg-input: #0f1419;
+      --border: #26303d;
+      --border-focus: #3a5068;
+      --text-primary: #e2e6eb;
+      --text-secondary: #8b949e;
+      --text-muted: #5c6670;
+      --accent: #d29922;
+      --accent-hover: #e2aa2e;
+      --danger: #e5534b;
+      --radius: 8px;
+      --font-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Menlo', monospace;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-primary);
+      background-image:
+        radial-gradient(ellipse at 50% 40%, rgba(210,153,34,0.06) 0%, transparent 55%),
+        radial-gradient(ellipse at 80% 80%, rgba(40,40,60,0.12) 0%, transparent 45%),
+        var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 4px 40px rgba(0,0,0,0.5);
+    }
+    .login-header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .login-icon {
+      width: 52px;
+      height: 52px;
+      margin: 0 auto 16px;
+      background: linear-gradient(135deg, var(--accent) 0%, #8b6914 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-icon svg { width: 26px; height: 26px; fill: none; stroke: #0a0e14; stroke-width: 2; }
+    .login-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+    .login-subtitle { font-size: 13px; color: var(--text-secondary); font-family: var(--font-mono); }
+    .form-group { margin-bottom: 20px; }
+    .form-label {
+      display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary);
+      margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .form-input {
+      width: 100%; padding: 12px 14px; font-size: 15px;
+      background: var(--bg-input); border: 1px solid var(--border);
+      border-radius: var(--radius); color: var(--text-primary); outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s; font-family: inherit;
+    }
+    .form-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(210,153,34,0.12); }
+    .form-input::placeholder { color: var(--text-muted); }
+    .btn {
+      width: 100%; padding: 14px; font-size: 15px; font-weight: 600;
+      background: var(--accent); color: #0a0e14; border: none;
+      border-radius: var(--radius); cursor: pointer; transition: all 0.2s;
+      font-family: inherit; letter-spacing: 0.3px;
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .error-msg {
+      background: rgba(229,83,75,0.1); border: 1px solid rgba(229,83,75,0.2);
+      color: var(--danger); padding: 10px 14px; border-radius: var(--radius);
+      font-size: 13px; margin-bottom: 20px; display: none; align-items: center; gap: 8px;
+    }
+    .error-msg.show { display: flex; }
+    .footer-note {
+      text-align: center; margin-top: 28px; font-size: 11px; color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="login-header">
+      <div class="login-icon">
+        <svg viewBox="0 0 24 24">
+          <rect x="2" y="2" width="20" height="20" rx="3"/>
+          <path d="M8 12h8M12 8v8"/>
+        </svg>
+      </div>
+      <div class="login-title">FRP 内网穿透管理</div>
+      <div class="login-subtitle">frp-manager v1.8.2</div>
+    </div>
+
+    <div id="errorBox" class="error-msg">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <span id="errorText"></span>
+    </div>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label class="form-label" for="username">用户名</label>
+        <input id="username" type="text" class="form-input" placeholder="请输入用户名" autocomplete="username" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="password">密码</label>
+        <input id="password" type="password" class="form-input" placeholder="请输入密码" autocomplete="current-password" required>
+      </div>
+      <button id="submitBtn" class="btn" type="submit">登 录</button>
+    </form>
+
+    <div class="footer-note">内网穿透管理 · 仅供授权运维使用</div>
+  </div>
+
+  <script>
+    var form = document.getElementById('loginForm');
+    var btn = document.getElementById('submitBtn');
+    var errorBox = document.getElementById('errorBox');
+    var errorText = document.getElementById('errorText');
+
+    function showError(msg) {
+      errorText.textContent = msg;
+      errorBox.classList.add('show');
+    }
+    function hideError() { errorBox.classList.remove('show'); }
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      hideError();
+      var username = document.getElementById('username').value.trim();
+      var password = document.getElementById('password').value.trim();
+      if (!username || !password) { showError('请输入用户名和密码'); return; }
+
+      btn.disabled = true;
+      btn.textContent = '登录中...';
+
+      fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username, password: password })
+      }).then(function(res) {
+        if (res.ok) { window.location.href = '/dashboard'; }
+        else { return res.json().then(function(d) { throw new Error(d.error || '登录失败'); }); }
+      }).catch(function(err) {
+        showError(err.message || '网络连接失败');
+        btn.disabled = false;
+        btn.textContent = '登 录';
+      });
+    });
+  </script>
+</body>
+</html>

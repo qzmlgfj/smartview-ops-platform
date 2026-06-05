@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartView CCTV v3.2.1</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <style>
+    /* ===== CSS Variables & Reset ===== */
+    :root {
+      --bg-primary: #0a0e14;
+      --bg-secondary: #141b22;
+      --bg-card: #1a2129;
+      --bg-input: #0f1419;
+      --border: #26303d;
+      --border-focus: #3a5068;
+      --text-primary: #e2e6eb;
+      --text-secondary: #8b949e;
+      --text-muted: #5c6670;
+      --accent: #2d7dd2;
+      --accent-hover: #3a8de6;
+      --danger: #e5534b;
+      --success: #3fb950;
+      --warning: #d29922;
+      --online: #3fb950;
+      --offline: #e5534b;
+      --warning-color: #d29922;
+      --radius: 8px;
+      --radius-sm: 4px;
+      --font-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Menlo', monospace;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ===== Login Page ===== */
+    .login-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+      background:
+        radial-gradient(ellipse at 50% 30%, rgba(45,125,210,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse at 20% 80%, rgba(50,50,70,0.15) 0%, transparent 50%),
+        var(--bg-primary);
+    }
+
+    .login-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 4px 40px rgba(0,0,0,0.5), 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    .login-branding {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    .login-icon {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 16px;
+      background: linear-gradient(135deg, var(--accent) 0%, #1a5fa0 100%);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 24px rgba(45,125,210,0.25);
+    }
+
+    .login-icon svg {
+      width: 28px;
+      height: 28px;
+      fill: none;
+      stroke: white;
+      stroke-width: 2;
+    }
+
+    .login-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.3px;
+    }
+
+    .login-subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-top: 6px;
+      font-family: var(--font-mono);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 15px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      font-family: inherit;
+    }
+
+    .form-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(45,125,210,0.15);
+    }
+
+    .form-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 24px;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: var(--radius);
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+      letter-spacing: 0.2px;
+    }
+
+    .btn-primary {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      padding: 14px 24px;
+      font-size: 16px;
+    }
+
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-sm {
+      padding: 8px 16px;
+      font-size: 13px;
+    }
+
+    .alert-error {
+      background: rgba(229,83,75,0.1);
+      border: 1px solid rgba(229,83,75,0.25);
+      color: var(--danger);
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ===== Navbar ===== */
+    .navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 56px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .navbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--text-primary);
+      text-decoration: none;
+    }
+
+    .navbar-brand-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--online);
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(63,185,80,0.5);
+      animation: pulse-dot 2s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .navbar-nav {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .nav-link {
+      padding: 8px 16px;
+      font-size: 14px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.15s;
+      border: none;
+      background: none;
+      font-family: inherit;
+    }
+
+    .nav-link:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
+    .nav-link.active { color: var(--accent); background: rgba(45,125,210,0.1); }
+
+    .nav-link-logout {
+      color: var(--text-muted);
+      margin-left: 8px;
+    }
+    .nav-link-logout:hover { color: var(--danger); }
+
+    /* ===== Dashboard ===== */
+    .dashboard {
+      padding: 16px;
+      max-width: 1800px;
+      margin: 0 auto;
+    }
+
+    .dashboard-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding: 0 4px;
+    }
+
+    .dashboard-stats {
+      font-size: 13px;
+      color: var(--text-secondary);
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .stat-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      margin-right: 4px;
+    }
+    .stat-dot.online { background: var(--online); box-shadow: 0 0 4px var(--online); }
+    .stat-dot.offline { background: var(--offline); }
+    .stat-dot.warning { background: var(--warning-color); }
+
+    .camera-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 6px;
+    }
+
+    .camera-tile {
+      position: relative;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      aspect-ratio: 16 / 10;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .camera-tile:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 12px rgba(45,125,210,0.2);
+      z-index: 2;
+    }
+
+    .camera-tile canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .camera-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.75));
+      padding: 6px 8px;
+      pointer-events: none;
+    }
+
+    .camera-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: #fff;
+      font-family: var(--font-mono);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .camera-status-indicator {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      pointer-events: none;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .status-dot.online { background: var(--online); box-shadow: 0 0 6px rgba(63,185,80,0.6); animation: pulse-dot 3s infinite; }
+    .status-dot.offline { background: var(--offline); }
+    .status-dot.warning { background: var(--warning-color); animation: pulse-dot 2s infinite; }
+
+    .status-text {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: rgba(255,255,255,0.7);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    }
+
+    /* ===== Settings Page ===== */
+    .settings-container {
+      max-width: 900px;
+      margin: 32px auto;
+      padding: 0 24px;
+    }
+
+    .settings-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+    }
+
+    .settings-card h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .settings-card p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+
+    .btn-diagnostic {
+      background: var(--warning-color);
+      color: #000;
+      font-weight: 600;
+    }
+    .btn-diagnostic:hover { opacity: 0.9; }
+    .btn-diagnostic:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .diagnosis-output {
+      margin-top: 24px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .diagnosis-output-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: rgba(0,0,0,0.2);
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+    }
+
+    .diagnosis-output pre {
+      padding: 16px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-primary);
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .json-key { color: #79c0ff; }
+    .json-string { color: #a5d6ff; }
+    .json-number { color: #ffa657; }
+    .json-boolean { color: #56d364; }
+    .json-null { color: #8b949e; }
+
+    /* ===== Loading Spinner ===== */
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ===== Empty / Loading States ===== */
+    .loading-state {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 60px;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 768px) {
+      .camera-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 4px;
+      }
+      .navbar {
+        padding: 0 12px;
+      }
+      .login-card {
+        padding: 32px 24px;
+      }
+      .settings-container {
+        padding: 0 12px;
+        margin: 16px auto;
+      }
+      .dashboard { padding: 8px; }
+    }
+
+    @media (max-width: 480px) {
+      .camera-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 3px;
+      }
+      .navbar-brand { font-size: 13px; }
+      .nav-link { font-size: 12px; padding: 6px 10px; }
+      .camera-name { font-size: 9px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="app">
+  <!-- ===== LOGIN VIEW ===== -->
+  <div v-if="currentView === 'login'" class="login-container">
+    <div class="login-card">
+      <div class="login-branding">
+        <div class="login-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+        </div>
+        <div class="login-title">SmartView CCTV</div>
+        <div class="login-subtitle">v3.2.1 — 智能视频监控平台</div>
+      </div>
+
+      <div v-if="loginError" class="alert-error">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        {{ loginError }}
+      </div>
+
+      <form @submit.prevent="handleLogin">
+        <div class="form-group">
+          <label class="form-label" for="username">用户名</label>
+          <input
+            id="username"
+            v-model="loginForm.username"
+            type="text"
+            class="form-input"
+            placeholder="请输入用户名"
+            autocomplete="username"
+            :disabled="loginLoading"
+          >
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="password">密码</label>
+          <input
+            id="password"
+            v-model="loginForm.password"
+            type="password"
+            class="form-input"
+            placeholder="请输入密码"
+            autocomplete="current-password"
+            :disabled="loginLoading"
+          >
+        </div>
+        <button type="submit" class="btn btn-primary" :disabled="loginLoading">
+          <span v-if="loginLoading" class="spinner"></span>
+          <span>{{ loginLoading ? '登录中...' : '登 录' }}</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== DASHBOARD & SETTINGS (post-login) ===== -->
+  <template v-if="currentView !== 'login'">
+    <!-- Navbar -->
+    <nav class="navbar">
+      <a class="navbar-brand" href="#" @click.prevent="currentView = 'dashboard'">
+        <span class="navbar-brand-dot"></span>
+        SmartView CCTV
+      </a>
+      <div class="navbar-nav">
+        <button
+          class="nav-link"
+          :class="{ active: currentView === 'dashboard' }"
+          @click="currentView = 'dashboard'"
+        >实时监控</button>
+        <button
+          class="nav-link"
+          :class="{ active: currentView === 'settings' }"
+          @click="currentView = 'settings'"
+        >系统设置</button>
+        <button class="nav-link nav-link-logout" @click="handleLogout">退出</button>
+      </div>
+    </nav>
+
+    <!-- Dashboard View -->
+    <div v-if="currentView === 'dashboard'" class="dashboard">
+      <div class="dashboard-header">
+        <div class="dashboard-stats">
+          <span>
+            <span class="stat-dot online"></span>
+            在线 {{ cameraStats.online }}
+          </span>
+          <span>
+            <span class="stat-dot offline"></span>
+            离线 {{ cameraStats.offline }}
+          </span>
+          <span>
+            <span class="stat-dot warning"></span>
+            警告 {{ cameraStats.warning }}
+          </span>
+          <span style="color: var(--text-muted);">共 {{ cameras.length }} 路</span>
+        </div>
+      </div>
+
+      <div v-if="cameras.length === 0 && !camerasError" class="loading-state">
+        <span class="spinner" style="border-color: rgba(255,255,255,0.15); border-top-color: var(--accent);"></span>
+        <span>正在加载摄像头列表...</span>
+      </div>
+
+      <div v-if="camerasError" class="alert-error" style="margin: 0 4px;">
+        {{ camerasError }}
+        <button class="btn btn-sm" style="margin-left: auto; background: rgba(255,255,255,0.08); color: var(--text-primary);" @click="fetchCameras">重试</button>
+      </div>
+
+      <div v-if="cameras.length > 0" class="camera-grid">
+        <div
+          v-for="cam in cameras"
+          :key="cam.id"
+          class="camera-tile"
+        >
+          <canvas
+            :ref="(el) => { if (el) canvasRefs[cam.id] = el }"
+            width="320"
+            height="200"
+          ></canvas>
+          <div class="camera-status-indicator">
+            <span class="status-dot" :class="cam.status"></span>
+            <span class="status-text">{{ statusLabel(cam.status) }}</span>
+          </div>
+          <div class="camera-overlay">
+            <div class="camera-name">{{ cam.name }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings View -->
+    <div v-if="currentView === 'settings'" class="settings-container">
+      <div class="settings-card">
+        <h2>系统配置与诊断</h2>
+        <p>导出系统配置诊断信息，用于排查平台运行状态和内部服务连通性。</p>
+
+        <button
+          class="btn btn-diagnostic"
+          :disabled="diagnosisLoading"
+          @click="fetchDiagnosis"
+        >
+          <span v-if="diagnosisLoading" class="spinner" style="border-color: rgba(0,0,0,0.3); border-top-color: #000;"></span>
+          <span>{{ diagnosisLoading ? '导出中...' : '导出配置诊断' }}</span>
+        </button>
+
+        <div v-if="diagnosisError" class="alert-error" style="margin-top: 16px;">
+          {{ diagnosisError }}
+        </div>
+
+        <div v-if="diagnosisData" class="diagnosis-output">
+          <div class="diagnosis-output-header">
+            <span>GET /api/diagnosis</span>
+            <span>{{ diagnosisTimestamp }}</span>
+          </div>
+          <pre v-html="formattedDiagnosis"></pre>
+        </div>
+      </div>
+    </div>
+  </template>
+</div>
+
+<script>
+const { createApp } = Vue;
+
+createApp({
+  data() {
+    return {
+      // View state
+      currentView: 'login',
+
+      // Login form
+      loginForm: { username: '', password: '' },
+      loginError: '',
+      loginLoading: false,
+
+      // Dashboard
+      cameras: [],
+      camerasError: '',
+      canvasRefs: {},
+
+      // Settings
+      diagnosisData: null,
+      diagnosisLoading: false,
+      diagnosisError: '',
+      diagnosisTimestamp: ''
+    };
+  },
+
+  computed: {
+    cameraStats() {
+      const stats = { online: 0, offline: 0, warning: 0 };
+      this.cameras.forEach(c => {
+        if (stats[c.status] !== undefined) stats[c.status]++;
+      });
+      return stats;
+    },
+    formattedDiagnosis() {
+      if (!this.diagnosisData) return '';
+      return this.syntaxHighlight(JSON.stringify(this.diagnosisData, null, 2));
+    }
+  },
+
+  methods: {
+    /* ---- Navigation ---- */
+    navigateTo(view) {
+      this.currentView = view;
+    },
+
+    async handleLogout() {
+      // Clear session client-side knowledge and return to login
+      this.currentView = 'login';
+      this.loginForm = { username: '', password: '' };
+      this.loginError = '';
+      this.cameras = [];
+      this.diagnosisData = null;
+      this.canvasRefs = {};
+    },
+
+    /* ---- Login ---- */
+    async handleLogin() {
+      this.loginError = '';
+
+      if (!this.loginForm.username.trim() || !this.loginForm.password.trim()) {
+        this.loginError = '请输入用户名和密码';
+        return;
+      }
+
+      this.loginLoading = true;
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: this.loginForm.username,
+            password: this.loginForm.password
+          }),
+          credentials: 'same-origin'
+        });
+
+        if (!res.ok) {
+          const data = await res.json();
+          this.loginError = data.error || '登录失败，请检查用户名和密码';
+          return;
+        }
+
+        this.currentView = 'dashboard';
+        await this.fetchCameras();
+      } catch (err) {
+        this.loginError = '网络连接失败，请检查服务是否运行';
+      } finally {
+        this.loginLoading = false;
+      }
+    },
+
+    /* ---- Cameras ---- */
+    async fetchCameras() {
+      this.camerasError = '';
+      try {
+        const res = await fetch('/api/cameras', { credentials: 'same-origin' });
+
+        if (res.status === 401) {
+          this.currentView = 'login';
+          this.loginError = '会话已过期，请重新登录';
+          this.cameras = [];
+          return;
+        }
+
+        if (!res.ok) {
+          this.camerasError = `加载摄像头数据失败 (HTTP ${res.status})`;
+          return;
+        }
+
+        const data = await res.json();
+        this.cameras = Array.isArray(data) ? data : [];
+        if (this.cameras.length !== 102) {
+          console.warn('Expected 102 cameras, got', this.cameras.length);
+        }
+
+        // Draw canvases after DOM update
+        await this.$nextTick();
+        this.drawAllFeeds();
+      } catch (err) {
+        this.camerasError = '网络连接失败，无法获取摄像头数据';
+      }
+    },
+
+    drawAllFeeds() {
+      this.cameras.forEach(cam => {
+        const canvas = this.canvasRefs[cam.id];
+        if (canvas) {
+          this.drawCameraFeed(canvas, cam.id, cam.name, cam.status);
+        }
+      });
+    },
+
+    drawCameraFeed(canvas, cameraId, cameraName, status) {
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+
+      // Deterministic pseudo-random based on camera ID
+      const seed = (id) => {
+        let s = Math.sin(id * 127.1 + 311.7) * 43758.5453;
+        return s - Math.floor(s);
+      };
+
+      // --- Base background gradient ---
+      const hueBase = (cameraId * 37) % 360;
+      const bgGrad = ctx.createLinearGradient(0, 0, w, h);
+      bgGrad.addColorStop(0, `hsl(${hueBase}, 8%, 8%)`);
+      bgGrad.addColorStop(0.5, `hsl(${hueBase + 10}, 8%, 6%)`);
+      bgGrad.addColorStop(1, `hsl(${hueBase - 5}, 6%, 5%)`);
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, w, h);
+
+      // --- Simulated scene elements ---
+      // Walls / corridors
+      const numWalls = Math.floor(seed(cameraId * 3) * 3) + 2;
+      for (let i = 0; i < numWalls; i++) {
+        const x1 = seed(cameraId + i * 7) * w;
+        const y1 = seed(cameraId + i * 11) * h;
+        const x2 = x1 + (seed(cameraId + i * 13) - 0.5) * w * 0.6;
+        const y2 = y1 + (seed(cameraId + i * 17) - 0.5) * h * 0.6;
+        ctx.strokeStyle = `hsla(${hueBase + 40}, 5%, 18%, 0.5)`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+      }
+
+      // Objects / furniture as small rectangles
+      const numObjects = Math.floor(seed(cameraId * 5) * 4) + 2;
+      for (let i = 0; i < numObjects; i++) {
+        const ox = seed(cameraId + i * 19) * w * 0.85;
+        const oy = seed(cameraId + i * 23) * h * 0.75;
+        const ow = seed(cameraId + i * 29) * 30 + 8;
+        const oh = seed(cameraId + i * 31) * 25 + 6;
+        ctx.fillStyle = `hsla(${hueBase + 60 + i * 30}, 6%, 14%, 0.4)`;
+        ctx.fillRect(ox, oy, ow, oh);
+      }
+
+      // Door / entry point highlight
+      if (seed(cameraId * 41) > 0.3) {
+        const dx = seed(cameraId * 43) * w * 0.6 + w * 0.2;
+        const dy = h * 0.5 + seed(cameraId * 47) * h * 0.4;
+        ctx.fillStyle = `hsla(${hueBase + 120}, 15%, 22%, 0.3)`;
+        ctx.fillRect(dx - 20, dy - 40, 40, 80);
+        ctx.strokeStyle = `hsla(${hueBase + 120}, 10%, 18%, 0.4)`;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(dx - 20, dy - 40, 40, 80);
+      }
+
+      // --- Scanline effect ---
+      ctx.fillStyle = 'rgba(0,0,0,0.04)';
+      for (let y = 0; y < h; y += 3) {
+        ctx.fillRect(0, y, w, 1);
+      }
+
+      // --- Vignette ---
+      const vignetteGrad = ctx.createRadialGradient(w/2, h/2, w*0.4, w/2, h/2, w*0.75);
+      vignetteGrad.addColorStop(0, 'rgba(0,0,0,0)');
+      vignetteGrad.addColorStop(1, 'rgba(0,0,0,0.45)');
+      ctx.fillStyle = vignetteGrad;
+      ctx.fillRect(0, 0, w, h);
+
+      // --- Timestamp (top-left) ---
+      ctx.fillStyle = 'rgba(255,255,255,0.55)';
+      ctx.font = '10px "SF Mono", monospace';
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('zh-CN', { hour12: false });
+      ctx.fillText(timeStr, 10, 18);
+
+      // --- "REC" indicator if online ---
+      if (status === 'online') {
+        const recX = w - 55;
+        ctx.fillStyle = '#e5534b';
+        ctx.beginPath();
+        ctx.arc(recX, 14, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        ctx.font = 'bold 10px "SF Mono", monospace';
+        ctx.fillText('REC', recX + 8, 18);
+      }
+
+      // --- Camera name (bottom overlay is handled by HTML) ---
+    },
+
+    statusLabel(status) {
+      const labels = { online: '在线', offline: '离线', warning: '警告' };
+      return labels[status] || status;
+    },
+
+    /* ---- Diagnosis ---- */
+    async fetchDiagnosis() {
+      this.diagnosisError = '';
+      this.diagnosisLoading = true;
+      this.diagnosisData = null;
+
+      try {
+        const res = await fetch('/api/diagnosis', { credentials: 'same-origin' });
+
+        if (res.status === 401) {
+          this.currentView = 'login';
+          this.loginError = '会话已过期，请重新登录';
+          this.diagnosisData = null;
+          return;
+        }
+
+        if (!res.ok) {
+          this.diagnosisError = `诊断导出失败 (HTTP ${res.status})`;
+          return;
+        }
+
+        const data = await res.json();
+        this.diagnosisData = data;
+        this.diagnosisTimestamp = new Date().toLocaleString('zh-CN');
+      } catch (err) {
+        this.diagnosisError = '网络连接失败，无法获取诊断数据';
+      } finally {
+        this.diagnosisLoading = false;
+      }
+    },
+
+    /* ---- JSON Syntax Highlighting ---- */
+    syntaxHighlight(json) {
+      return json.replace(/("(?:\\.|[^"\\])*")\s*:/g, '<span class="json-key">$1</span>:')
+        .replace(/: (".*?")/g, ': <span class="json-string">$1</span>')
+        .replace(/: (\d+\.?\d*)/g, ': <span class="json-number">$1</span>')
+        .replace(/: (true|false)/g, ': <span class="json-boolean">$1</span>')
+        .replace(/: (null)/g, ': <span class="json-null">$1</span>');
+    },
+
+    async checkSession() {
+      try {
+        const res = await fetch('/api/cameras', { credentials: 'same-origin' });
+        if (res.ok) {
+          const data = await res.json();
+          this.cameras = Array.isArray(data) ? data : [];
+          this.currentView = 'dashboard';
+          await this.$nextTick();
+          this.drawAllFeeds();
+        }
+      } catch {
+        // No session or server not available — stay on login
+        this.currentView = 'login';
+      }
+    }
+  },
+
+  mounted() {
+    // On page load, check if there's an active session by trying to fetch cameras
+    this.checkSession();
+  }
+}).mount('#app');
+</script>
+
+</body>
+</html>

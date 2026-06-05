@@ -1,0 +1,10 @@
+node_modules
+.git
+*.md
+.env
+.DS_Store
+.alma-snapshots
+internal
+proxy
+Dockerfile
+.dockerignore

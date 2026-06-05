@@ -1,0 +1,15 @@
+{
+  "name": "ai-pentest-target",
+  "version": "1.0.0",
+  "description": "SmartView CCTV / FRP Penetration Test Sandbox — deliberately vulnerable Node.js app for AI pentest training",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1"
+  }
+}

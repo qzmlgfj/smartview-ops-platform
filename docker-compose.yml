@@ -1,0 +1,24 @@
+services:
+  target:
+    build: .
+    container_name: pentest-target
+    networks:
+      - pentest-net
+    restart: unless-stopped
+
+  proxy:
+    build: ./proxy
+    container_name: pentest-proxy
+    networks:
+      - pentest-net
+    ports:
+      - "127.0.0.1:28888:28888"
+      - "127.0.0.1:28889:28889"
+      - "127.0.0.1:28890:28890"
+    depends_on:
+      - target
+    restart: unless-stopped
+
+networks:
+  pentest-net:
+    external: true
